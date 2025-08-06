@@ -75,17 +75,6 @@ IAM infrastructure:
 
 ---
 
-## 💡 Heads-Up: Common Mistakes & Lessons Learned
-
-See [`docs/mistakes_and_insights.md`](docs/mistakes_and_insights.md) to dive into:
-
-* Overlooked `ListBucket` permissions
-* Typo‑caused silent policy misfires
-* Role assumption pitfalls
-* Debugging best practices
-
----
-
 ## 🧼 Cleanup Tips
 
 ```bash
