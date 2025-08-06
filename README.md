@@ -25,9 +25,6 @@ This project provisions a secure, multi-department S3 storage system using Terra
 
 ---
 
-📁 Project Structure
-<pre> . ├── cloudtrail/ # CloudTrail configuration ├── iam/ # IAM roles, policies, users ├── sample_data/ # Sample files per department ├── sample_data_upload.tf # Upload logic for test files ├── main.tf # Root module (S3 + modules) ├── outputs.tf # Terraform outputs (bucket + role ARNs) └── docs/ # User guide, test logs, mistakes & insights </pre>
-
 ## 🛠️ How to Deploy
 
 1. **Initialize**
