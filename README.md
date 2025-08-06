@@ -3,147 +3,144 @@
 ```markdown
 # DataSafe S3 Secure Access (Terraform)
 
-This repository contains Terraform code to provision a secure, multi-department S3 file storage system using IAM roles, policies, and CloudTrail logging. It's built for a fictitious company (**DataSafe Solutions**) to demonstrate least-privilege access controls using AWS best practices.
+This project sets up a secure, role-based S3 storage system for a fictitious company (**DataSafe Solutions**) using Terraform. It demonstrates least-privilege IAM access, CloudTrail auditing, and secure S3 design.
 
 ---
 
-## 🚀 Project Overview
+## 🚀 What’s Inside
 
-- **S3 Setup**  
-  - One bucket with *three prefixes*: `HR/`, `Finance/`, `Marketing/`  
-  - SSE-S3 encryption enabled  
-  - Public access fully blocked (ACLs, policies)
+### 🪣 S3 Storage  
+- One bucket with 3 prefixes: `HR/`, `Finance/`, `Marketing/`  
+- SSE-S3 encryption  
+- Public access fully blocked (ACLs + bucket policy)
 
-- **IAM Access Control**  
-  - Three roles: `HRAccessRole`, `FinanceAccessRole`, `MarketingAccessRole`  
-  - Fine-grained IAM policies scoped by folder prefix  
-  - Three IAM users (`hr_user`, `finance_user`, `marketing_user`) that can only assume their respective roles
+### 🔐 IAM Access Control  
+- Three IAM roles scoped to each department folder  
+- Matching IAM users (`hr_user`, `finance_user`, `marketing_user`)  
+- Users can only assume their own role
 
-- **CloudTrail Logging**  
-  - Logs everything to a separate S3 bucket  
-  - Includes S3 object-level data events for full auditing
+### 📜 CloudTrail Logging  
+- Separate log bucket with object-level logging for full audit trails
 
-- **Sample Data**  
-  - Basic `.txt` files pre-loaded in each department folder to test read/write access
+### 📂 Sample Data  
+- Test `.txt` files uploaded to each folder
 
 ---
 
-## 📁 Directory Structure
+## 📁 Project Structure
 
 ```
 
 .
-├── cloudtrail/             # CloudTrail configuration
-├── iam/                    # IAM roles, policies, users
-├── sample\_data/            # Sample files for upload
-├── sample\_data\_upload.tf   # Upload logic for sample data
-├── main.tf                 # Root module (S3 + modules)
-├── outputs.tf              # Core Terraform outputs (bucket + role ARNs)
-└── docs/                   # Documentation: user guide, test reports, screenshots
+├── cloudtrail/             # CloudTrail config
+├── iam/                    # Users, roles, and policies
+├── sample\_data/            # Test files
+├── sample\_data\_upload.tf   # Upload logic
+├── main.tf                 # Core S3 + module wiring
+├── outputs.tf              # Outputs (bucket, roles)
+└── docs/                   # User guide, test logs, mistakes
 
 ````
 
 ---
 
-## 🛠️ How to Deploy
+## 🛠️ Deploy in 5 Steps
 
-1. **Initialize Terraform**  
+1. **Initialize**
+
    ```bash
    terraform init
 ````
 
-2. **Provide variables** (via `terraform.tfvars` or `-var` flags). At minimum:
+2. **Set Variables**
+
+   Either in `terraform.tfvars` or via CLI:
 
    ```hcl
-   region                   = "us-east-2"
-   cloudtrail_bucket_name  = "<unique-log-bucket-name>"
+   region                  = "us-east-2"
+   cloudtrail_bucket_name = "<your-unique-log-bucket>"
    ```
 
-3. **Plan and Apply**
+3. **Plan + Apply**
 
    ```bash
    terraform plan
    terraform apply
    ```
 
-4. **Retrieve Role ARNs**
+4. **Get Role ARNs**
 
    ```bash
    terraform output
    ```
 
-5. **Assume Roles using AWS CLI or SDK** with the role ARNs and test S3 access.
+5. **Assume Role & Test**
+
+   ```bash
+   aws sts assume-role --role-arn <HR_ROLE_ARN> --role-session-name hr_test
+   ```
+
+   Test access:
+
+   ```bash
+   aws s3 ls s3://<bucket>/HR/       # ✅ Allowed  
+   aws s3 ls s3://<bucket>/Finance/  # ❌ Denied
+   ```
+
+Repeat for `finance_user` and `marketing_user`.
 
 ---
 
-## 🧪 Testing Workflow
+## 🧠 Common Mistakes & Fixes
 
-* Configure AWS CLI for a user (e.g. `hr_user`)
-* Assume the corresponding role:
+See [`docs/mistakes_and_insights.md`](docs/mistakes_and_insights.md) for real-world issues like:
 
-  ```bash
-  aws sts assume-role --role-arn <HR_ROLE_ARN> --role-session-name hr_test
-  ```
-* Export temporary credentials and test access:
-
-  ```bash
-  aws s3 ls s3://<bucket>/HR/              # ✅ success
-  aws s3 ls s3://<bucket>/Finance/          # ❌ should be denied
-  ```
-
-Repeat similar tests for `finance_user` and `marketing_user`.
+* Missing `ListBucket` permissions
+* Silent IAM typos
+* Confusing assume-role logic
 
 ---
 
-## 🧠 Lessons & Gotchas
-
-See `docs/mistakes_and_insights.md` for a detailed list of real-world mistakes, policy traps (e.g., missing `ListBucket`, silent IAM typos), and engineering lessons learned.
-
----
-
-## 🧾 Cleanup
+## 🧹 Cleanup
 
 ```bash
 terraform destroy
 ```
 
-> ⚠️ Make sure to **delete IAM user access keys manually**, or configure managed keys in Terraform with `sensitive = true`, so destroy operations succeed without cleanup errors.
+> ⚠️ Manually delete IAM access keys if managed outside Terraform to avoid destroy errors.
 
 ---
 
-## 🌟 Why This Matters
+## 🌟 Why It Matters
 
-* **Least-privilege first**: Each role can only act within its own folder (and Finance has read-only access to HR).
-* **Audited and secure**: SSE encryption + CloudTrail data logs for compliance.
-* **Modular & reusable**: Easy to replicate for other department setups or scale with live data on GitHub.
-
----
-
-## 📬 Feedback or Contributions?
-
-Want help extending this example with KMS encryption, lifecycle rules, or versioning? Open an issue or pull request!
-— Hassanat (@\[your\_handle])
-
-````
+* **Principle of Least Privilege**: Roles are locked to specific prefixes
+* **Secure by Default**: Encryption, blocked public access, and logging
+* **Reusable Design**: Extendable to other teams or live data setups
 
 ---
 
-### ✅ About the public GitHub repo
+## 🤝 Want to Contribute?
 
-I'm **not able to programmatically create or push code to GitHub** on your behalf. You can:
+Ideas for next steps:
 
-1. Create a new public repository on GitHub
-2. Add this README.md as your project’s homepage
-3. `git init` (if not already), commit your current directory contents
-4. Add the remote URL and push:
+* Add KMS encryption
+* Lifecycle rules for data
+* Versioning support
+
+Open a PR or issue. — Hassanat (@your\_handle)
+
+---
+
+## ✅ Going Public on GitHub?
+
+1. Create a new repo
+2. Add this `README.md`
+3. Initialize + commit your code:
+
    ```bash
-   git remote add origin https://github.com/<username>/<repo-name>.git
+   git init
+   git add .
+   git commit -m "Initial commit"
+   git remote add origin https://github.com/<your-username>/<repo>.git
    git push -u origin main
-````
-
-That way your repo will include:
-
-* Terraform code
-* Sample files
-* Docs with mistakes & test results
-* README as roadmap
+   ```
